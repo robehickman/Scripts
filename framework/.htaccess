@@ -1,11 +1,6 @@
 RewriteEngine on
 
-# Main
-RewriteRule ^([A-Za-z0-9\_\-\ \.]+).html$ index.php?section=$1
-RewriteRule ^([A-Za-z0-9\_\-\ \.]+)/([A-Za-z0-9\_\-\ \.]+).html$ index.php?section=$1&page=$2
-RewriteRule ^([A-Za-z0-9\_\-\ \.]+)/([A-Za-z0-9\_\-\ \.]+)/([A-Za-z0-9\_\-\ \.]+).html$ index.php?section=$1&page=$2&id=$3
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 
-#Block direct web access to source code.
-RewriteRule ^.htaccess - [F,L]
-RewriteRule ^app/ - [F,L]
-RewriteRule ^src/ - [F,L]
+RewriteRule . index.php

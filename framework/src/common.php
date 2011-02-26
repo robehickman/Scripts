@@ -1,176 +1,135 @@
 <?php
 /*
- Copyright 2009 Robert Hickman
+ * Copyright 2010 Robert Hickman
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
 
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- * Constructs a URL with section/subsection information
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-function make_url($sect, $sub_sect = NULL, $id = NULL)
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+* Escape HTML special charicters
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+function esc($text)
 {
-    $sect = add_uscores($sect);
-    $path = get_current_path();
+    return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+}
 
-    if(USE_REWRITE == true)
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ * Validate a URL
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+function validate_url($url)
+{
+    if(!preg_match('|^http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$|i', $url))
+        throw new invalid_url_exception($url);
+}
+
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ * Validate a email address
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+function validate_email($email)
+{
+    if(!preg_match("/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+"
+        ."(\.[a-z0-9-]+)*(\.[a-z]{2,3})$/", $email))
+        throw new invalid_email_exception($email);
+}
+
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ * Get the path to the applications root directory
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+function get_app_root()
+{
+    $root = dirname($_SERVER["PHP_SELF"]);
+
+    if($root[strlen($root) - 1] == '/')
+        $root = substr($root, 0, strlen($root) - 1);
+
+    return $root;
+}
+
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ * Build a internal url form the paramiters, vararg function
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+function make_url()
+{
+    $root = get_app_root();
+
+    if(func_num_args() > 0)
     {
-        if($sub_sect == NULL && $id == NULL)
-        {
-            return $path . "$sect.html";
-        }
 
-        else if($id == NULL)
+        for($i = 0; $i < func_num_args(); $i ++)
         {
-            return $path . "$sect/$sub_sect.html";
-        }
-
-        else
-        {
-            return $path . "$sect/$sub_sect/$id.html";
+            $root .= '/' . func_get_arg($i);
         }
     }
+
+    return $root;
+}
+
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ * Build a external url form the paramiters, vararg function
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+function make_ext_url()
+{
+    $prot = 'http';
+
+    if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on')
+        $prot .= 's';
+
+    $prot .= "://";
+
+    if ($_SERVER['SERVER_PORT'] != '80')
+        $prot .= $_SERVER["SERVER_NAME"]. ':' .$_SERVER["SERVER_PORT"];
     else
+        $prot .= $_SERVER["SERVER_NAME"];
+
+    $root = get_app_root();
+
+    $root = $prot . $root;
+
+    if(func_num_args() > 0)
     {
-        if($sub_sect == NULL && $id == NULL)
+
+        for($i = 0; $i < func_num_args(); $i ++)
         {
-            return $path . "index.php?section=$sect";
+            $root .= '/' . func_get_arg($i);
         }
-
-        else if($id == NULL)
-        {
-            return $path . "index.php?section=$sect&page=$sub_sect";
-        }
-
-        else
-        {
-            return $path . "index.php?section=$sect&page=$sub_sect&id=$id";
-        }
-        return $path;
-    }
-}
-
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- * Get the section and page name form the URL and set
- * them to point to the home page if the URL variables
- * dont exsit
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-function get_site_index()
-{
-// get sect
-    if(isset($_GET['section']))
-    {
-        $section = $_GET['section'];
-    }
-    else
-    {
-        $section = DEFAULT_PAGE;
     }
 
-// get page
-    if(isset($_GET['page']))
-    {
-        $page = $_GET['page'];
-    }
-    else
-    {
-        $page = NULL;
-    }
-
-// get id
-    if(isset($_GET['id']))
-    {
-        $id = $_GET['id'];
-    }
-    else
-    {
-        $id = NULL;
-    }
-
-    return array(
-        "sect" => $section,
-        "page" => $page,
-        "id"   => $id);
+    return $root;
 }
 
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- * Get the path of the CMS root
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-function get_current_path()
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ * Import a helper from the helpers directory
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+function load_helper($name)
 {
-    $array = explode("/", $_SERVER['PHP_SELF']);
-    array_shift($array);
-    array_pop($array);
+    $hlp_path = "app/helpers/$name.php";
 
-    $path = "/";
-
-    foreach($array as $item)
-    {
-        $path .= $item . "/";
-    }
-
-    return $path;
+    if(file_exists($hlp_path))
+        include_once $hlp_path;
 }
 
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- * Replace spaces with underscores
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-function add_uscores($str)
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ * Redirect the browser to anouther page
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+function redirect_to($target)
 {
-    return str_replace(" ", "_", $str);
+    @header("location: " . $target);
+// Throw to alow testing and prevent code execution after the
+// redirect
+    throw new redirecting_to($target);
 }
 
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- * Replace undersores with spaces
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-function strip_uscores($str)
-{
-    return str_replace("_", " ", $str);
-}
-
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- * Create handler return array
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-function make_return($page_title, $content, $ajax = false)
-{
-    return array(
-        'page_title' => $page_title,
-        'content'    => $content,
-        'ajax'       => $ajax);
-}
-
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- * Abstraction around model instance creation.
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-function instance_model($model_name)
-{
-    return new $model_name();
-}
-
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- * Abstraction around view instance creation.
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-function instance_view($view_name)
-{
-    return new view($view_name);
-}
-
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- * Raise an error, instantly stops execution of the
- * application and displays an error message.
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-function raise_error($error)
-{
-    throw new exception($error);
-}
+// Exceptions
+class invalid_url_exception extends exception { }
+class invalid_email_exception extends exception { }
+class redirecting_to extends exception { }

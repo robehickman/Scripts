@@ -1,63 +1,75 @@
 <?php
 /*
- Copyright 2009 Robert Hickman
-
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ * Copyright 2010 Robert Hickman
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
 
 class view
 {
-    var $str;
+    var $filename;
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-* Load in template file and expand macros into PHP
+ * Load in template file
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-    function __CONSTRUCT($tplname, $tplpath = "app/views/")
+    public function __CONSTRUCT($tplname, $path = 'app/views/')
     {
-        $filename =  $tplpath . $tplname . ".php"; 
+        $filename = $path . $tplname . '.php'; 
 
-        if (!file_exists($filename))
-            die("View $tplname.php does not exist.");
+        if(!file_exists($filename))
+            die("template $tplname.php does not exist");
 
-        $fh = fopen($filename, 'r');
-        $this->str = fread($fh, filesize($filename));
-        fclose($fh);
-
-    // Add PHP close tag to exit PHP mode 
-        $this->str = "?>" . $this->str;
+        $this->filename = $filename;
     }
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-* Display the main template
+* Display the template directily
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     public function parse($array = array())
     {
         extract($array);
-        eval($this->str);
+        include $this->filename;
     }
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- * Generate HTML for post editing form
+ * Parse the template into a variable and return it
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     public function parse_to_variable($array = array())
     {
         extract($array);
 
         ob_start();
-        eval($this->str);
+        include $this->filename;
         $result = ob_get_contents();
         ob_end_clean();
         return $result;
     }
+}
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ * Create an instance of the view
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+function instance_view($view_name, $path = 'app/views/')
+{
+    return new view($view_name, $path);
+}
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ * Display a template with one line of code, alows easy
+ * display of templates within templates
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+function display_template($name, $params)
+{
+    $content = new view($name);
+    $content->parse($params);
 }

@@ -1,42 +1,49 @@
 <?php
 /*
- Copyright 2009 Robert Hickman
+ * Copyright 2010 Robert Hickman
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
 
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+// Includes
+    include "src/common.php";
+    include "src/dispatcher.php";
+    include "src/database.php";
+    include "src/controller.php";
+    include "src/view.php";
 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+// Load config file
+    include "config.php";
 
- You should have received a copy of the GNU General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Setup
+    session_start();
+    header('Content-Type: text/html; charset=UTF-8');
+    mb_internal_encoding("UTF-8");
 
-/*++++++++++++++++++++ Common setings +++++++++++++++++++++*/
-// Default (index) controller
-    define("DEFAULT_PAGE",  "Hello World");
-
-// use mod_rewrite for pritty(search engine frendly) url's
-    define("USE_REWRITE",   true);
+    mysql_connect(HOST, USERNAME, PASSWORD)or
+        die("cannot connect");
+    mysql_select_db(DB_NAME)or die("cannot select DB");
 
 
-/*++++++++++++++++ Database configuration +++++++++++++++++*/
-// Host name
-    define("HOST",         "localhost");       
-
-// Database username
-    define("USERNAME",     "");             
-
-// Database password
-    define("PASSWORD",     ""); 
-
-// Database name
-    define("DB_NAME",      "");        
-
-/*++++++++++++++++++ End of configuration +++++++++++++++++*/
-    include "src/framework.php";
-    run_framework();
+// Run the dispatcher
+    try
+    {
+        dispatcher();
+    }
+    catch(exception $e)
+    {
+        if(APP_MODE == 'test')
+            throw $e;
+        else
+            die('Something went wrong');
+    }
