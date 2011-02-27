@@ -74,9 +74,17 @@ function recur_dir($path, $wpath, $dir)
     if(file_exists($path . '/galleryconf'))
         $config  = config_parser($path . '/galleryconf');
 
-// Loop over files in directory
+// Sort files by filename
+    $files = array();
+
     $dhandle = opendir($path);
     while($file = readdir($dhandle))
+        array_push($files, $file);
+
+    natsort($files);
+
+// Loop over files, generate thumbs and add to gallery
+    foreach($files as $file)
     {
         if(!($file === '.svn' || $file === '.' || $file === '..'))
         {
