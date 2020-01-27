@@ -1,4 +1,8 @@
 #!/usr/bin/python3
+
+import sys
+if sys.version_info < (3, 6): raise SystemExit("Requires python 3.6 or greater")
+
 import os, os.path, stat, json, yaml
 from subprocess import Popen, PIPE
 from pathlib import Path

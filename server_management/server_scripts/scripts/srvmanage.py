@@ -1,7 +1,10 @@
 #!/usr/bin/python3
 """ Script to manage virtual hosted websites with apache, php-fpm and mysql """
 
-import os, sys, re, crypt, secrets, yaml, random, string, json
+import sys
+if sys.version_info < (3, 6): raise SystemExit("Requires python 3.6 or greater")
+
+import os, re, crypt, secrets, yaml, random, string, json
 from typing import Tuple
 import subprocess as sub
 import pymysql as mysql

@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 # Backup databases
 
+import sys
+if sys.version_info < (3, 6): raise SystemExit("Requires python 3.6 or greater")
+
 import os, yaml
 import pymysql as mysql
 import sqlite3 as lite

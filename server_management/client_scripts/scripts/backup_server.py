@@ -1,5 +1,9 @@
 #!/usr/bin/python3
-import os, fcntl, sys
+
+import sys
+if sys.version_info < (3, 6): raise SystemExit("Requires python 3.6 or greater")
+
+import os, fcntl
 from pathlib import Path
 
 path = Path(sys.argv[1])
