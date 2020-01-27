@@ -16,17 +16,6 @@ albums. Only those defined by the file system will remain.
 Depends on ImageMagic.
 
 
-== SrvManage.py
-
-Script for managing a test server, creates and destroys virtual hosts. Vhosts
-are sub domains, secured using mpm_itk. All Vhosts are attached to a git
-repository which may be used to upload and version website code. Passwords
-for SSH and MySQL are randomly generated.
-
-Designed to work with a debian-style apache, but can work with others with
-minimal modification.
-
-
 == Music_encoder.php
 
 Recursively converts music files to .ogg, copying the result files into a
